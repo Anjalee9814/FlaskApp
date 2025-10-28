@@ -1,0 +1,44 @@
+services:
+  web:
+    build: ./app
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://student:student123@db:5432/studentdb
+    depends_on:
+      - initdb
+    healthcheck:
+      test: ["CMD-SHELL", "python healthcheck.py"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Use the default CMD from the Dockerfile (gunicorn)
+
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: studentdb
+      POSTGRES_USER: student
+      POSTGRES_PASSWORD: student123
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  initdb:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: student
+      POSTGRES_PASSWORD: student123
+      POSTGRES_DB: studentdb
+    depends_on:
+      - db
+    restart: "no"
+    command: ["sh", "-c", "until pg_isready -h db -U student; do sleep 1; done; PGPASSWORD=student123 psql -h db -U student -d studentdb -c \"CREATE TABLE IF NOT EXISTS greetings (id SERIAL PRIMARY KEY, message TEXT NOT NULL);\" -c \"INSERT INTO greetings (message) SELECT 'Hello from Flask and PostgreSQL!' WHERE NOT EXISTS (SELECT 1 FROM greetings);\""]
+
+  adminer:
+    image: adminer:latest
+    restart: always
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
