@@ -4,6 +4,8 @@
 <!-- CI badge: replace OWNER/REPO in the URL below with your GitHub repository to enable the badge -->
 [![CI](https://github.com/Anjalee9814/FlaskApp/actions/workflows/ci.yml/badge.svg)](https://github.com/Anjalee9814/FlaskApp/actions/workflows/ci.yml)
 
+Release v0.1.0 — Initial release: Flask + PostgreSQL Docker Compose example (Gunicorn, DB init, Adminer, tests, CI).
+
 This small project demonstrates a Flask app containerized with Docker and using PostgreSQL via Docker Compose.
 
 Location: The project folder is `flask-docker`.
