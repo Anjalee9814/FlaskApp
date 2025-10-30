@@ -1,87 +1,331 @@
 
-# Flask with PostgreSQL (Docker + Docker Compose)
+# Flask Student Management System with PostgreSQL
 
-<!-- CI badge: replace OWNER/REPO in the URL below with your GitHub repository to enable the badge -->
+<!-- CI badge -->
 [![CI](https://github.com/Anjalee9814/FlaskApp/actions/workflows/ci.yml/badge.svg)](https://github.com/Anjalee9814/FlaskApp/actions/workflows/ci.yml)
 
-Release v0.1.0 — Initial release: Flask + PostgreSQL Docker Compose example (Gunicorn, DB init, Adminer, tests, CI).
+**Release v0.1.0** — Flask + PostgreSQL Docker Compose example with student management form (Gunicorn, DB init, Adminer, tests, CI).
 
-This small project demonstrates a Flask app containerized with Docker and using PostgreSQL via Docker Compose.
+## Overview
 
-Location: The project folder is `flask-docker`.
+This project demonstrates a Flask web application with PostgreSQL database, fully containerized with Docker and orchestrated using Docker Compose. The app includes a student management system where you can add and view student records.
 
-Quick start (Windows PowerShell):
+### Features
+- ✅ Student management web form (add students with name, age, email, course)
+- ✅ View all students (web UI and JSON API)
+- ✅ PostgreSQL database with auto-initialization
+- ✅ Adminer database UI for direct database access
+- ✅ Health check endpoint
+- ✅ Production-ready with Gunicorn WSGI server
+- ✅ Automated tests and CI/CD with GitHub Actions
 
-1. Open PowerShell and change to the project directory:
+## Prerequisites
 
-```powershell
-cd "c:\Users\Anjalee Himalki\Desktop\cloud assignment PaaS\flask-docker"
+Before you begin, ensure you have the following installed on your system:
+
+1. **Docker Desktop** (required)
+   - Download from: https://www.docker.com/products/docker-desktop
+   - **Windows**: Docker Desktop for Windows
+   - **macOS**: Docker Desktop for Mac
+   - **Linux**: Docker Engine + Docker Compose
+
+2. **Git** (to clone the repository)
+   - Download from: https://git-scm.com/downloads
+
+## Getting Started
+
+### Step 1: Clone the Repository
+
+Open your terminal (PowerShell on Windows, Terminal on macOS/Linux) and run:
+
+```bash
+git clone https://github.com/Anjalee9814/FlaskApp.git
+cd FlaskApp
 ```
 
-2. Build and start the services:
+### Step 2: Start Docker Desktop
+
+- **Windows/macOS**: Launch Docker Desktop from your Applications menu
+- **Linux**: Ensure Docker daemon is running: `sudo systemctl start docker`
+- Wait until Docker Desktop shows "Engine running" status (usually 10-30 seconds)
+
+### Step 3: Build and Run the Application
+
+#### For Windows (PowerShell):
 
 ```powershell
-docker-compose up --build
+# Navigate to the project directory
+cd FlaskApp
+
+# Build and start all services
+docker compose up --build -d
+
+# Wait a few seconds for services to initialize
+Start-Sleep -Seconds 10
+
+# Check if services are running
+docker compose ps
 ```
 
-3. Visit the app:
+#### For macOS/Linux (Terminal):
 
-- Home: http://localhost:5000
-- Data from DB: http://localhost:5000/data
+```bash
+# Navigate to the project directory
+cd FlaskApp
 
-4. Stop the stack:
+# Build and start all services
+docker compose up --build -d
+
+# Wait a few seconds for services to initialize
+sleep 10
+
+# Check if services are running
+docker compose ps
+```
+
+### Step 4: Access the Application
+
+Once the services are running, open your web browser and visit:
+
+- **Student Management Form**: http://localhost:5000/
+  - Add new students with name, age, email, and course
+  - View recently added students
+  
+- **All Students (JSON API)**: http://localhost:5000/students
+  - Get all students in JSON format
+
+- **Health Check**: http://localhost:5000/health
+  - Check if the application is running
+
+- **Adminer (Database UI)**: http://localhost:8080/
+  - Direct database access and management
+  - Login credentials:
+    - **System**: PostgreSQL
+    - **Server**: db
+    - **Username**: student
+    - **Password**: student123
+    - **Database**: studentdb
+
+### Step 5: Stop the Application
+
+When you're done, stop all services:
 
 ```powershell
-docker-compose down
+# Windows PowerShell
+docker compose down
 ```
 
-- Notes:
-- The database initialization is run by a one-shot Compose service named `initdb` (it runs `python init_db.py`). The `web` service depends on `initdb` so the DB will be seeded before the app starts.
-- Database connection is provided via the `DATABASE_URL` env var defined in `docker-compose.yml`.
-- Adminer is included on port `8080` for a lightweight DB GUI. Use the following to log in:
+```bash
+# macOS/Linux
+docker compose down
+```
 
-	- System / Server: postgres or leave blank (Adminer will use the host below)
-	- Server: `db`
-	- Username: `student`
-	- Password: `student123`
-	- Database: `studentdb`
+```bash
+# macOS/Linux
+docker compose down
+```
 
-	Open Adminer at: http://localhost:8080
-- If you change code, rebuild with `docker-compose up --build`.
+## Troubleshooting
 
-Troubleshooting:
-- If the web service fails with DB connection errors, wait a few seconds and restart; `depends_on` ensures ordering but not readiness. The `init_db.py` script retries until the DB accepts connections.
+### Docker Desktop Not Running
+**Error**: `error during connect: ... The system cannot find the file specified`
 
-Quick helper (PowerShell)
--------------------------
-I added a small helper script `scripts/tasks.ps1` to speed up common tasks. Example usages (from project root):
+**Solution**: 
+1. Start Docker Desktop application
+2. Wait for "Engine running" status
+3. Try the `docker compose up` command again
+
+### Port Already in Use
+**Error**: `Bind for 0.0.0.0:5000 failed: port is already allocated`
+
+**Solution**:
+```powershell
+# Find what's using the port (Windows PowerShell)
+Get-NetTCPConnection -LocalPort 5000
+
+# Or stop any existing containers
+docker compose down
+```
+
+### Services Not Starting
+**Solution**:
+```powershell
+# View logs to see what's wrong
+docker compose logs
+
+# View logs for a specific service
+docker compose logs web
+docker compose logs db
+```
+
+### Database Connection Errors
+**Solution**: The database might still be initializing. Wait 10-15 seconds and refresh the page.
+
+## Project Structure
+
+```
+FlaskApp/
+├── app/
+│   ├── app.py                 # Main Flask application
+│   ├── init_db.py            # Database initialization script
+│   ├── requirements.txt       # Python dependencies
+│   ├── Dockerfile            # Multi-stage Docker build
+│   ├── gunicorn_config.py    # Gunicorn WSGI server config
+│   ├── healthcheck.py        # Health check script
+│   └── tests/                # Unit and integration tests
+├── docker-compose.yml         # Docker Compose orchestration
+├── .gitignore                # Git ignore rules
+├── README.md                 # This file
+└── scripts/
+    └── tasks.ps1             # PowerShell helper scripts
+```
+
+## Available Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Student management form (add and view students) |
+| `/add-student` | POST | Add a new student (form submission) |
+| `/students` | GET | Get all students as JSON |
+| `/health` | GET | Health check endpoint |
+| `/data` | GET | Get greeting message from database |
+
+## Database Schema
+
+### Students Table
+```sql
+CREATE TABLE students (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    age INTEGER NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    course VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## Development
+
+### Running Tests Locally
+
+First, create a Python virtual environment and install dependencies:
+
+**Windows PowerShell:**
+```powershell
+python -m venv app\.venv
+.\app\.venv\Scripts\Activate.ps1
+pip install -r app\requirements.txt
+
+# Run unit tests
+pytest app/tests/test_app.py
+
+# Run integration tests (requires running containers)
+pytest app/tests/test_integration.py
+```
+
+**macOS/Linux:**
+```bash
+python3 -m venv app/.venv
+source app/.venv/bin/activate
+pip install -r app/requirements.txt
+
+# Run unit tests
+pytest app/tests/test_app.py
+
+# Run integration tests (requires running containers)
+pytest app/tests/test_integration.py
+```
+
+### Viewing Logs
+
+```bash
+# View all logs
+docker compose logs
+
+# Follow logs in real-time
+docker compose logs -f
+
+# View logs for specific service
+docker compose logs web
+docker compose logs db
+```
+
+### Rebuild After Code Changes
+
+If you modify the code, rebuild and restart:
+
+```bash
+docker compose up --build -d
+```
+
+## Advanced Usage
+
+### Using PowerShell Helper Script (Windows)
+
+The project includes a helper script for common tasks:
 
 ```powershell
 # Build images
 .\scripts\tasks.ps1 -Task build
 
-# Start the stack in detached mode
+# Start services
 .\scripts\tasks.ps1 -Task up
 
-# Run unit tests
-.\scripts\tasks.ps1 -Task test-unit
-
-# Run integration test (brings stack up, runs test, tears down)
-.\scripts\tasks.ps1 -Task test-integration
-
-# Full run (up -> wait for health -> integration test -> logs -> down)
+# Run all (start, test, logs, stop)
 .\scripts\tasks.ps1 -Task run-all
 
-# Tear down
+# Stop services
 .\scripts\tasks.ps1 -Task down
 ```
 
-This script assumes you have the project venv at `app/.venv` (see earlier steps to create and install requirements).
+### Using Makefile (macOS/Linux)
 
-Makefile & gunicorn notes
--------------------------
-- There's a `Makefile` at the project root with convenience targets: `make build`, `make up`, `make down`, `make test-unit`, `make test-integration`. This is intended for macOS / Linux users; Windows users should use `scripts/tasks.ps1` or WSL.
+```bash
+make build          # Build images
+make up             # Start services
+make down           # Stop services
+make test-unit      # Run unit tests
+make test-integration  # Run integration tests
+```
 
-- The app container now runs Gunicorn (configured via `app/gunicorn_config.py`). You can change the number of workers by setting the `GUNICORN_WORKERS` environment variable in `docker-compose.yml` or your host environment.
- - The app container now runs Gunicorn (configured via `app/gunicorn_config.py`). You can change the number of workers by setting the `GUNICORN_WORKERS` environment variable in `docker-compose.yml` or your host environment.
+### Environment Variables
+
+You can customize the application by modifying `docker-compose.yml`:
+
+- `DATABASE_URL`: PostgreSQL connection string
+- `GUNICORN_WORKERS`: Number of Gunicorn worker processes (default: 2)
+
+## Technologies Used
+
+- **Flask 2.2.5** - Web framework
+- **PostgreSQL 14** - Database
+- **Gunicorn 20.1.0** - WSGI HTTP server
+- **Docker & Docker Compose** - Containerization
+- **Adminer** - Database management UI
+- **pytest** - Testing framework
+- **GitHub Actions** - CI/CD
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is open source and available for educational purposes.
+
+## Contact
+
+- **Author**: Anjalee9814
+- **Repository**: https://github.com/Anjalee9814/FlaskApp
+- **Issues**: https://github.com/Anjalee9814/FlaskApp/issues
+
+## Acknowledgments
+
+- Flask documentation: https://flask.palletsprojects.com/
+- Docker documentation: https://docs.docker.com/
+- PostgreSQL documentation: https://www.postgresql.org/docs/
 
